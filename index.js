@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var graphqlServer = require('graphql-server-express');
 var graphqlTools = require('graphql-tools');
+var rp = require('request-promise');
 
 var typeDefs = `
   schema {
@@ -40,8 +41,36 @@ var typeDefs = `
   }
 `;
 
-var resolvers = {};
-var context = {};
+var resolvers = {
+  Query: {
+    bookById: (root, args, ctx) => ctx.get("http://www.anapioficeandfire.com/api/books/" + args.bookId),
+    bookByName: (root, args, ctx) => ctx.get("http://www.anapioficeandfire.com/api/books?name=" + args.bookName),
+  },
+  Book: {
+    characters: (root, args, ctx) => root.characters.map((url) => ctx.get(url)),
+  },
+  Character: {
+    allegiances: (root, args, ctx) => root.allegiances.map((url) => ctx.get(url)),
+    father: (root, args, ctx) => ctx.get(root.father),
+    mother: (root, args, ctx) => ctx.get(root.mother),
+  },
+  House: {
+    swornMembers: (root, args, ctx) => root.swornMembers.map((url) => ctx.get(url)),
+    currentLord: (root, args, ctx) => ctx.get(root.currentLord),
+    heir: (root, args, ctx) => ctx.get(root.heir),
+  }
+};
+var context = {
+  get: (url) => {
+      if ( url.length === 0 ) {
+        return null;
+      }
+
+      return rp(url).then((res) => {
+        return JSON.parse(res);
+    });
+  },
+};
 
 var schema = graphqlTools.makeExecutableSchema({
   resolvers : resolvers,

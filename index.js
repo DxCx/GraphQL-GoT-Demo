@@ -4,8 +4,39 @@ var graphqlServer = require('graphql-server-express');
 var graphqlTools = require('graphql-tools');
 
 var typeDefs = `
+  schema {
+      query: Query
+  }
+
   type Query {
-    test: String
+      bookById(bookId: Int!): Book
+      bookByName(bookName: String!): [Book]
+  }
+
+  type House {
+      name: String
+      region: String
+      titles: [String]
+      currentLord: Character
+      heir: Character
+      swornMembers: [Character]
+  }
+
+  type Character {
+      name: String
+      gender: String
+      born: String
+      father: Character
+      mother: Character
+      allegiances: [House]
+  }
+
+  type Book {
+      name: String
+      isban: String
+      authors: [String]
+      released: String
+      characters: [Character]
   }
 `;
 
